@@ -1,0 +1,44 @@
+:root {
+    --background: #ffffff;
+    --text-color: #000000;
+  }
+  
+  body.dark {
+    --background: #121212;
+    --text-color: #ffffff;
+  }
+  
+  body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: var(--background);
+    color: var(--text-color);
+  }
+  
+  .app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: var(--background);
+    border-bottom: 1px solid #ccc;
+  }
+  
+  .app-header h1 {
+    margin: 0;
+  }
+  
+  .app-header nav a {
+    margin: 0 10px;
+    text-decoration: none;
+    color: var(--text-color);
+  }
+  
+  .app-header nav a:hover {
+    text-decoration: underline;
+  }
+  
+  button {
+    cursor: pointer;
+  }
+  

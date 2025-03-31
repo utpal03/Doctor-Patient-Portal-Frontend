@@ -89,18 +89,18 @@
   .profile-section h3 {
     margin: 0 0 5px;
     font-size: 18px;
-    color: var(--text-color);
+    color: #ffffff;
   }
   
   .profile-section p {
     margin: 0 0 10px;
     font-size: 14px;
-    color: var(--text-light);
+    color: #ffffff;
   }
   
   .quick-info {
     font-size: 13px;
-    color: var(--text-light);
+    color: #ffffff;
     line-height: 1.5;
     margin-top: 10px;
   }
@@ -171,7 +171,7 @@
   .dashboard-header h1 {
     font-size: 28px;
     font-weight: 700;
-    color: var(--text-color);
+    color: #ffffff;
     margin: 0 0 20px;
   }
   
@@ -206,7 +206,7 @@
   
   .health-card h3 .card-icon {
     margin-right: 10px;
-    color: var(--primary-color);
+    color: #ffffff;
   }
   
   .next-appointment {

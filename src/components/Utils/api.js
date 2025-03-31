@@ -1,4 +1,9 @@
-import { getAccessToken, getRefreshToken, storeTokens, removeTokens } from "../../components/Utils/tokenService";
+import {
+  getAccessToken,
+  getRefreshToken,
+  storeTokens,
+  removeTokens,
+} from "../../components/Utils/tokenService";
 
 export const API_BASE_URL = "http://localhost:8080";
 
@@ -33,9 +38,10 @@ export const fetchWithTokenRefresh = async (url, options = {}) => {
 
     if (refreshResponse.ok) {
       const data = await refreshResponse.json();
-      const { accessToken: newAccessToken, refreshToken: newRefreshToken } = data;
+      const { accessToken: newAccessToken} =
+        data;
 
-      storeTokens(newAccessToken, newRefreshToken);
+      storeTokens(newAccessToken);
       headers["Authorization"] = `Bearer ${newAccessToken}`;
       response = await fetch(url, { ...options, headers });
     } else {
@@ -43,10 +49,8 @@ export const fetchWithTokenRefresh = async (url, options = {}) => {
       window.location.href = "/login";
     }
   }
-
   return response;
 };
-
 
 export const login = async (credentials, loginType) => {
   const endpoint =
@@ -82,6 +86,24 @@ export const forgotPassword = async (email) => {
     body: JSON.stringify({ email }),
   });
   return response.json();
+};
+
+export const logout = async () => {
+  const refreshToken = getRefreshToken();
+  const response = await fetch(`/logout`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${refreshToken}`,
+    },
+  });
+
+  if (response.ok) {
+    removeTokens();
+    window.location.href = "/login";
+  } else {
+    console.error("Logout failed:", await response.text());
+  }
 };
 
 export const bookAppointment = async (data) => {

@@ -1,16 +1,30 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { login } from "../Utils/api";
+import { storeTokens } from "../Utils/tokenService";
 
-const Login = ({ setAuth }) => {
+const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     username: "",
     password: "",
   });
-  const [loginType, setLoginType] = useState("doctor"); 
+  const [loginType, setLoginType] = useState("doctor");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const roles = JSON.parse(localStorage.getItem("roles") || "[]");
+    
+    if (token) {
+      if (roles.includes("DOCTOR")) {
+        navigate("/doctor/dashboard");
+      } else if (roles.includes("PATIENT")) {
+        navigate("/patient/dashboard");
+      }
+    }
+  }, [navigate]);
 
   const validateForm = () => {
     const newErrors = {};
@@ -33,10 +47,11 @@ const Login = ({ setAuth }) => {
     setIsLoading(true);
     try {
       const response = await login(formData, loginType);
-      setAuth(true);
-      localStorage.setItem("token", response.accessToken);
-      localStorage.setItem("refreshToken", response.refreshToken);
+      // Store tokens,roles and ID
+      storeTokens(response.accessToken, response.refreshToken);
       localStorage.setItem("roles", JSON.stringify(response.roles));
+      localStorage.setItem("id", response.id);
+      
       const roles = response.roles;
       if (roles.includes("DOCTOR")) {
         navigate("/doctor/dashboard");
@@ -45,8 +60,7 @@ const Login = ({ setAuth }) => {
       }
     } catch (err) {
       setErrors({
-        submit:
-          err.response?.data?.message || "Login failed. Please try again.",
+        submit: err.message || "Login failed. Please try again.",
       });
     } finally {
       setIsLoading(false);
@@ -58,18 +72,6 @@ const Login = ({ setAuth }) => {
       <div className="auth-form">
         <h2>Welcome Back</h2>
         <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="loginType">Login as:</label>
-            <select
-              id="loginType"
-              value={loginType}
-              onChange={(e) => setLoginType(e.target.value)}
-            >
-              <option value="doctor">Doctor</option>
-              <option value="patient">Patient</option>
-            </select>
-          </div>
-
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input

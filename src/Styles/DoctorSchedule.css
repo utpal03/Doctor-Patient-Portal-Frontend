@@ -1,0 +1,275 @@
+/* Previous styles remain the same until Schedule Styles section */
+
+/* Schedule Page Styles - Updated */
+.schedule-page {
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.schedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 0 20px;
+}
+
+.date-navigation {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.nav-btn {
+  padding: 8px 16px;
+  background-color: #f0f7ff;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  color: #2563eb;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.nav-btn:hover {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+.add-event-btn {
+  padding: 10px 20px;
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-event-btn:hover {
+  background-color: #1d4ed8;
+}
+
+.schedule-grid {
+  display: flex;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  height: calc(100vh - 120px);
+  overflow: hidden;
+}
+
+.time-column {
+  width: 80px;
+  min-width: 80px;
+  border-right: 1px solid #e2e8f0;
+  background-color: #f8fafc;
+}
+
+.time-slot {
+  height: 60px;
+  padding: 10px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #64748b;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.events-column {
+  flex: 1;
+  position: relative;
+  overflow-y: auto;
+  padding: 0 10px;
+}
+
+.event-card {
+  position: absolute;
+  left: 10px;
+  right: 10px;
+  padding: 0px;
+  border-radius: 6px;
+  background-color: #f0f7ff;
+  border-left: 4px solid #2563eb;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  overflow: hidden;
+  min-height: 60px;
+}
+
+.event-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.event-card h4 {
+  margin: 0 0 5px 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.event-card .event-time {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 0;
+}
+
+.event-card .event-notes {
+  font-size: 0.75rem;
+  color: #64748b;
+  margin: 5px 0 0 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-card.meeting {
+  background-color: #fef3c7;
+  border-left-color: #d97706;
+}
+
+.event-card.break {
+  background-color: #dcfce7;
+  border-left-color: #16a34a;
+}
+
+/* Modal Styles - Updated for Schedule */
+.modal {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal h3 {
+  margin: 0 0 20px 0;
+  color: #1e293b;
+}
+
+.modal .form-group {
+  margin-bottom: 20px;
+}
+
+.modal .form-group label {
+  display: block;
+  margin-bottom: 8px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.modal .form-group input,
+.modal .form-group select,
+.modal .form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  font-size: 0.875rem;
+}
+
+.modal .form-group textarea {
+  resize: vertical;
+  min-height: 80px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 25px;
+}
+
+.modal-actions button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.cancel-btn {
+  background-color: #f1f5f9;
+  color: #64748b;
+  border: 1px solid #e2e8f0;
+}
+
+.confirm-btn {
+  background-color: #2563eb;
+  color: #fff;
+  border: none;
+}
+
+.confirm-btn:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.delete-btn {
+  background-color: #fee2e2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  margin-right: auto;
+}
+
+.delete-btn:hover {
+  background-color: #dc2626;
+  color: #fff;
+  border-color: #dc2626;
+}
+
+/* Responsive Styles for Schedule */
+@media (max-width: 768px) {
+  .schedule-page {
+    padding: 10px;
+    height: calc(100vh - 20px);
+  }
+
+  .schedule-header {
+    flex-direction: column;
+    gap: 15px;
+    align-items: stretch;
+    padding: 0;
+  }
+
+  .date-navigation {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .schedule-grid {
+    height: calc(100vh - 180px);
+  }
+
+  .time-column {
+    width: 60px;
+    min-width: 60px;
+  }
+
+  .event-card {
+    left: 5px;
+    right: 5px;
+    padding: 8px;
+  }
+
+  .modal {
+    width: 95%;
+    padding: 20px;
+  }
+
+  .modal-actions {
+    flex-wrap: wrap;
+  }
+
+  .modal-actions button {
+    flex: 1;
+    min-width: 120px;
+  }
+}

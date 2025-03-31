@@ -1,276 +1,387 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import "../../../Styles/PatientDashboard.css";
+"use client"
+
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import "../../../Styles/DashboardStyles.css"
 
 const PatientDashboard = () => {
-  const navigate = useNavigate();
-  const [appointments, setAppointments] = useState([]);
-  const [medications, setMedications] = useState([]);
-  const [reports, setReports] = useState([]);
-  const [patientInfo, setPatientInfo] = useState({
-    name: "John Doe",
-    id: "P-12345",
-    age: 35,
-    bloodGroup: "O+",
-    nextAppointment: "2025-01-23",
-  });
+  const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState(true)
+  const [appointments, setAppointments] = useState([])
+  const [medications, setMedications] = useState([])
+  const [reports, setReports] = useState([])
+  const [patientInfo, setPatientInfo] = useState(null)
+  const [error, setError] = useState(null)
 
   useEffect(() => {
-    // Fetch patient's data
-    const mockAppointments = [
-      {
-        id: 1,
-        doctorName: "Dr. Sarah Wilson",
-        specialization: "Cardiologist",
-        doctorImage: "/api/placeholder/64/64",
-        date: "2025-01-23",
-        time: "10:00 AM",
-        status: "upcoming",
-        location: "Main Clinic, Room 105",
-      },
-      {
-        id: 2,
-        doctorName: "Dr. Michael Brown",
-        specialization: "General Physician",
-        doctorImage: "/api/placeholder/64/64",
-        date: "2025-02-15",
-        time: "2:30 PM",
-        status: "scheduled",
-        location: "West Wing, Room 203",
-      },
-    ];
+    const fetchPatientData = async () => {
+      try {
+        setIsLoading(true)
+        const token = localStorage.getItem("token")
+        const loggedInPatientId = Number(localStorage.getItem("id"))
 
-    const mockMedications = [
-      {
-        id: 1,
-        name: "Aspirin",
-        dosage: "81mg",
-        frequency: "Once daily",
-        timeLeft: "15 days",
-        prescribedBy: "Dr. Sarah Wilson",
-      },
-      {
-        id: 2,
-        name: "Lisinopril",
-        dosage: "10mg",
-        frequency: "Twice daily",
-        timeLeft: "7 days",
-        prescribedBy: "Dr. Sarah Wilson",
-      },
-    ];
+        if (!token) {
+          throw new Error("No authentication token found")
+        }
 
-    const mockReports = [
-      {
-        id: 1,
-        name: "Blood Work Analysis",
-        date: "2024-12-15",
-        doctor: "Dr. Sarah Wilson",
-        status: "completed",
-      },
-      {
-        id: 2,
-        name: "ECG Report",
-        date: "2024-12-15",
-        doctor: "Dr. Sarah Wilson",
-        status: "pending",
-      },
-    ];
+        const headers = {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        }
 
-    setAppointments(mockAppointments);
-    setMedications(medications);
-    setReports(mockReports);
-  }, []);
+        // Fetch all data in parallel
+        const [patientResponse, appointmentsResponse, medicationsResponse, reportsResponse] = await Promise.all([
+          fetch("/patientInfo", { headers }),
+          fetch("/appointments", { headers }),
+          fetch("/medications", { headers }),
+          fetch("/reports", { headers }),
+        ])
+
+        // Parse JSON responses
+        const [patientData, appointmentsData, medicationsData, reportsData] = await Promise.all([
+          patientResponse.json(),
+          appointmentsResponse.json(),
+          medicationsResponse.json(),
+          reportsResponse.json(),
+        ])
+
+        // Handle patient data
+        if (Array.isArray(patientData) && patientData.length > 0) {
+          const loggedInPatientId = Number(localStorage.getItem("id"))
+
+          const foundPatient = patientData.find((patient) => patient.id === loggedInPatientId)
+          if (foundPatient) {
+            setPatientInfo(foundPatient)
+          } else {
+            throw new Error(`Patient with ID ${loggedInPatientId} not found`)
+          }
+        } else {
+          throw new Error("Invalid patient data format")
+        }
+
+        // Ensure other data is valid
+        setAppointments(Array.isArray(appointmentsData) ? appointmentsData : [])
+        setMedications(Array.isArray(medicationsData) ? medicationsData : [])
+        setReports(Array.isArray(reportsData) ? reportsData : [])
+      } catch (err) {
+        console.error("Error fetching patient data:", err)
+        setError(err.message)
+
+        // Initialize empty arrays on error
+        setAppointments([])
+        setMedications([])
+        setReports([])
+        setPatientInfo(null)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchPatientData()
+  }, [])
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("userType");
-    navigate("/login");
-  };
+    localStorage.removeItem("token")
+    localStorage.removeItem("userType")
+    navigate("/login")
+  }
 
-  const MyAppointments = () => {
-    navigate("/my-appointment");
-  };
-  const Dashboard = () => {
-    navigate("/patient/dashboard");
-  };
-  const MedicalRecords = () => {
-    navigate("/medical-record");
-  };
+  // Navigation functions
+  const navigationHandlers = {
+    Dashboard: () => navigate("/patient/dashboard"),
+    Appointments: () => navigate("/my-appointment"),
+    "Medical Records": () => navigate("/medical-record"),
+    "Lab Reports": () => navigate("/LabReports"),
+    Messages: () => navigate("/messages"),
+    Prescriptions: () => navigate("/prescription"),
+  }
 
-  const LabReports = () => {
-    navigate("/LabReports");
-  };
+  if (isLoading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner"></div>
+        <p>Loading your dashboard...</p>
+      </div>
+    )
+  }
 
-  const Messages = () => {
-    navigate("/messages");
-  };
-  const prescription = () => {
-    navigate("/prescription");
-  };
+  if (error) {
+    return (
+      <div
+        className="error-container"
+        style={{
+          padding: "20px",
+          margin: "20px",
+          backgroundColor: "rgba(244, 67, 54, 0.1)",
+          border: "1px solid var(--error-color)",
+          borderRadius: "8px",
+          color: "var(--error-color)",
+          textAlign: "center",
+        }}
+      >
+        <p>Error loading dashboard: {error}</p>
+        <button
+          onClick={() => window.location.reload()}
+          style={{
+            marginTop: "10px",
+            padding: "8px 16px",
+            backgroundColor: "var(--error-color)",
+            color: "white",
+            border: "none",
+            borderRadius: "4px",
+            cursor: "pointer",
+          }}
+        >
+          Retry
+        </button>
+      </div>
+    )
+  }
 
   return (
-    <div className="patient-dashboard">
-      <nav className="patient-sidebar">
-        <div className="patient-profile">
-          <img
-            src="/api/placeholder/80/80"
-            alt="Patient"
-            className="patient-avatar"
-          />
-          <h3>{patientInfo.name}</h3>
-          <p>Patient ID: {patientInfo.id}</p>
-          <div className="patient-quick-info">
-            <span>Age: {patientInfo.age}</span>
-            <span>Blood: {patientInfo.bloodGroup}</span>
-          </div>
+    <div className="dashboard-container">
+      <nav className="sidebar">
+        <div className="profile-section">
+          {patientInfo ? (
+            <>
+              <img src={patientInfo.image || "/api/placeholder/80/80"} alt="Patient" className="avatar" />
+              <h3>{patientInfo.name || "Patient Name"}</h3>
+              <p>Patient ID: {patientInfo.id || "N/A"}</p>
+              <div className="quick-info">
+                <span>Age: {patientInfo.age || "N/A"}</span>
+                <br />
+                <span>Blood: {patientInfo.bloodgroup || "N/A"}</span>
+              </div>
+            </>
+          ) : (
+            <p>Unable to load patient info</p>
+          )}
         </div>
 
         <div className="nav-menu">
-          <button className="menu-item active" onClick={Dashboard}>
-            Dashboard
-          </button>
-
-          <button className="menu-item " onClick={MyAppointments}>
-            MyAppointment
-          </button>
-
-          <button className="menu-item" onClick={MedicalRecords}>
-            Medical Records
-          </button>
-
-          <button className="menu-item" onClick={prescription}>
-            Prescriptions
-          </button>
-
-          <button className="menu-item" onClick={LabReports}>
-            LabReports
-          </button>
-
-          <button className="menu-item" onClick={Messages}>
-            Messages
-          </button>
-
+          {Object.entries(navigationHandlers).map(([name, handler]) => (
+            <button key={name} className={`menu-item ${name === "Dashboard" ? "active" : ""}`} onClick={handler}>
+              <span className="menu-icon">
+                {name === "Dashboard" && "🏠"}
+                {name === "Appointments" && "📅"}
+                {name === "Medical Records" && "📋"}
+                {name === "Lab Reports" && "🔬"}
+                {name === "Messages" && "✉️"}
+                {name === "Prescriptions" && "💊"}
+              </span>
+              <span>{name}</span>
+            </button>
+          ))}
           <button className="menu-item logout" onClick={handleLogout}>
-            Logout
+            <span className="menu-icon">🚪</span>
+            <span>Logout</span>
           </button>
         </div>
       </nav>
 
-      <main className="patient-main">
-        <header className="patient-header">
-          <h1>My Health Dashboard</h1>
-
+      <main className="main-content">
+        <header className="dashboard-header">
+          <h1>Patient Dashboard</h1>
           <div className="health-summary">
             <div className="health-card">
-              <h3>Next Appointment</h3>
+              <h3>
+                <span className="card-icon">📅</span>
+                Next Appointment
+              </h3>
               {appointments[0] ? (
                 <div className="next-appointment">
-                  <p className="date">{appointments[0].date}</p>
-                  <p className="time">{appointments[0].time}</p>
-                  <p className="doctor">with {appointments[0].doctorName}</p>
-                  <p className="location">{appointments[0].location}</p>
+                  <p className="date">{appointments[0].date || "Date N/A"}</p>
+                  <p className="time">{appointments[0].time || "Time N/A"}</p>
+                  <p className="doctor">with {appointments[0].doctorName || "Doctor N/A"}</p>
+                  <p className="location">{appointments[0].location || "Location N/A"}</p>
                 </div>
               ) : (
                 <p>No upcoming appointments</p>
               )}
             </div>
-
             <div className="health-card">
-              <h3>Active Medications</h3>
+              <h3>
+                <span className="card-icon">💊</span>
+                Active Medications
+              </h3>
               <p className="stat">{medications.length}</p>
               <p className="stat-label">Current Prescriptions</p>
             </div>
-
             <div className="health-card">
-              <h3>Recent Reports</h3>
-              <p className="stat">
-                {reports.filter((r) => r.status === "pending").length}
-              </p>
+              <h3>
+                <span className="card-icon">📋</span>
+                Recent Reports
+              </h3>
+              <p className="stat">{reports.filter((r) => r.status === "pending").length}</p>
               <p className="stat-label">Pending Reports</p>
             </div>
           </div>
         </header>
 
-        <section className="appointments-overview">
-          <h2>Upcoming Appointments</h2>
-          <div className="appointment-cards">
-            {appointments.map((appointment) => (
-              <div key={appointment.id} className="appointment-card">
-                <div className="doctor-info">
-                  <img
-                    src={appointment.doctorImage}
-                    alt={appointment.doctorName}
-                    className="doctor-image"
-                  />
-                  <div>
-                    <h4>{appointment.doctorName}</h4>
-                    <p className="specialization">
-                      {appointment.specialization}
-                    </p>
+        <section className="dashboard-section">
+          <div className="section-header">
+            <h2>Upcoming Appointments</h2>
+            <button className="view-all-btn" onClick={() => navigate("/my-appointment")}>
+              View All
+            </button>
+          </div>
+          <div className="cards-grid">
+            {appointments.length > 0 ? (
+              appointments.slice(0, 3).map((appointment) => (
+                <div key={appointment.id || Math.random()} className="dashboard-card">
+                  <div className="person-info">
+                    <img
+                      src={appointment.doctorImage || "/api/placeholder/80/80"}
+                      alt={appointment.doctorName || "Doctor"}
+                      className="person-image"
+                    />
+                    <div>
+                      <h4>{appointment.doctorName || "Doctor Name"}</h4>
+                      <p className="person-details">{appointment.specialization || "Specialization N/A"}</p>
+                    </div>
+                  </div>
+                  <div className="card-details">
+                    <div className="detail-item">
+                      <span className="detail-label">Date:</span>
+                      <span className="detail-value">{appointment.date || "N/A"}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Time:</span>
+                      <span className="detail-value">{appointment.time || "N/A"}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Location:</span>
+                      <span className="detail-value">{appointment.location || "N/A"}</span>
+                    </div>
+                  </div>
+                  <div className="card-actions">
+                    <div className={`status-badge ${appointment.status || "pending"}`}>
+                      {appointment.status || "Pending"}
+                    </div>
+                    <button
+                      className="action-button secondary-button"
+                      onClick={() => {
+                        console.log("Reschedule appointment:", appointment.id)
+                      }}
+                    >
+                      Reschedule
+                    </button>
                   </div>
                 </div>
-                <div className="appointment-details">
-                  <p className="appointment-date">
-                    <span>Date:</span> {appointment.date}
-                  </p>
-                  <p className="appointment-time">
-                    <span>Time:</span> {appointment.time}
-                  </p>
-                  <p className="appointment-location">
-                    <span>Location:</span> {appointment.location}
-                  </p>
-                </div>
-                <div className="appointment-actions">
-                  <div className={`status-badge ${appointment.status}`}>
-                    {appointment.status}
-                  </div>
-                  <button className="reschedule-btn">Reschedule</button>
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="no-data-message">No upcoming appointments</p>
+            )}
           </div>
         </section>
 
-        <section className="medications-section">
-          <h2>Current Medications</h2>
-          <div className="medications-list">
-            {medications.map((medication) => (
-              <div key={medication.id} className="medication-card">
-                <div className="medication-info">
-                  <h4>{medication.name}</h4>
-                  <p className="medication-dosage">{medication.dosage}</p>
-                  <p className="medication-frequency">{medication.frequency}</p>
+        <section className="dashboard-section">
+          <div className="section-header">
+            <h2>Current Medications</h2>
+            <button className="view-all-btn" onClick={() => navigate("/prescription")}>
+              View All
+            </button>
+          </div>
+          <div className="cards-grid">
+            {medications.length > 0 ? (
+              medications.slice(0, 3).map((medication) => (
+                <div key={medication.id || Math.random()} className="dashboard-card">
+                  <div className="person-info">
+                    <div>
+                      <h4>{medication.name || "Medication Name"}</h4>
+                      <p className="person-details">Prescribed by Dr. {medication.prescribedBy || "N/A"}</p>
+                    </div>
+                  </div>
+                  <div className="card-details">
+                    <div className="detail-item">
+                      <span className="detail-label">Dosage:</span>
+                      <span className="detail-value">{medication.dosage || "N/A"}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Frequency:</span>
+                      <span className="detail-value">{medication.frequency || "N/A"}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Refill in:</span>
+                      <span className="detail-value">{medication.timeLeft || "N/A"}</span>
+                    </div>
+                  </div>
+                  <div className="card-actions">
+                    <button
+                      className="action-button primary-button"
+                      onClick={() => {
+                        console.log("Request refill:", medication.id)
+                      }}
+                    >
+                      Request Refill
+                    </button>
+                    <button
+                      className="action-button secondary-button"
+                      style={{ marginLeft: "8px" }}
+                      onClick={() => {
+                        console.log("View details:", medication.id)
+                      }}
+                    >
+                      Details
+                    </button>
+                  </div>
                 </div>
-                <div className="medication-status">
-                  <p className="time-left">Refill in: {medication.timeLeft}</p>
-                  <p className="prescribed-by">Dr. {medication.prescribedBy}</p>
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="no-data-message">No current medications</p>
+            )}
           </div>
         </section>
 
-        <section className="reports-section">
-          <h2>Recent Medical Reports</h2>
-          <div className="reports-list">
-            {reports.map((report) => (
-              <div key={report.id} className="report-card">
-                <div className="report-info">
-                  <h4>{report.name}</h4>
-                  <p className="report-date">{report.date}</p>
+        <section className="dashboard-section">
+          <div className="section-header">
+            <h2>Recent Medical Reports</h2>
+            <button className="view-all-btn" onClick={() => navigate("/LabReports")}>
+              View All
+            </button>
+          </div>
+          <div className="cards-grid">
+            {reports.length > 0 ? (
+              reports.slice(0, 3).map((report) => (
+                <div key={report.id || Math.random()} className="dashboard-card">
+                  <div className="person-info">
+                    <div>
+                      <h4>{report.name || "Report Name"}</h4>
+                      <p className="person-details">Date: {report.date || "Date N/A"}</p>
+                    </div>
+                  </div>
+                  <div className="card-details">
+                    <div className="detail-item">
+                      <span className="detail-label">Type:</span>
+                      <span className="detail-value">{report.type || "N/A"}</span>
+                    </div>
+                    <div className="detail-item">
+                      <span className="detail-label">Doctor:</span>
+                      <span className="detail-value">{report.doctor || "N/A"}</span>
+                    </div>
+                  </div>
+                  <div className="card-actions">
+                    <div className={`status-badge ${report.status || "pending"}`}>{report.status || "Pending"}</div>
+                    <button
+                      className="action-button primary-button"
+                      onClick={() => {
+                        console.log("View report:", report.id)
+                      }}
+                    >
+                      View Report
+                    </button>
+                  </div>
                 </div>
-                <div className="report-status">
-                  <span className={`status-badge ${report.status}`}>
-                    {report.status}
-                  </span>
-                  <button className="view-report-btn">View Report</button>
-                </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="no-data-message">No recent reports</p>
+            )}
           </div>
         </section>
       </main>
     </div>
-  );
-};
-export default PatientDashboard;
+  )
+}
+
+export default PatientDashboard
+

@@ -64,12 +64,6 @@ const ForgotPassword = () => {
     <div className="forgot-password-container">
       <div className="forgot-password-card">
         <div className="card-header">
-          {/* <button 
-            className="back-button"
-            onClick={handleBackToLogin}
-          >
-            ←
-          </button> */}
           <div>
             <h2>Forgot Password</h2>
             <p className="description">

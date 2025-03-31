@@ -29,16 +29,22 @@ const PatientDashboard = () => {
           "Content-Type": "application/json",
         };
 
+        const options = {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        };
+
         const [
           patientResponse,
           appointmentsResponse,
           medicationsResponse,
           reportsResponse,
         ] = await Promise.all([
-          fetchWithTokenRefresh("/patientInfo", headers),
-          fetchWithTokenRefresh("/appointments", headers),
-          fetchWithTokenRefresh("/medications", headers),
-          fetchWithTokenRefresh("/reports", headers),
+          fetchWithTokenRefresh("/patientInfo", options),
+          fetchWithTokenRefresh("/appointments", options),
+          fetchWithTokenRefresh("/medications", options),
+          fetchWithTokenRefresh("/reports", options),
         ]);
 
 

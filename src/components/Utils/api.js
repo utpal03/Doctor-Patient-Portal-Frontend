@@ -17,39 +17,53 @@ export const endpoints = {
   viewAppointments: `${API_BASE_URL}/appointments/doctor`,
 };
 
+
 export const fetchWithTokenRefresh = async (url, options = {}) => {
-  const accessToken = getAccessToken();
-  const refreshToken = getRefreshToken();
+  try {
+    let accessToken = getAccessToken();
+    const refreshToken = getRefreshToken();
 
-  const headers = {
-    ...options.headers,
-    Authorization: `Bearer ${accessToken}`,
-    "Content-Type": "application/json",
-  };
+    let headers = {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    };
 
-  let response = await fetch(url, { ...options, headers });
-
-  if (response.status === 401 && refreshToken) {
-    const refreshResponse = await fetch("http://localhost:8080/refresh-token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken }),
+    let response = await fetch(`${API_BASE_URL}${url}`, {
+      ...options,
+      headers,
     });
 
-    if (refreshResponse.ok) {
-      const data = await refreshResponse.json();
-      const { accessToken: newAccessToken} =
-        data;
+    if (response.status === 401 && refreshToken) {
+      const refreshResponse = await fetch(`${API_BASE_URL}/refresh-token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ refreshToken }),
+      });
 
-      storeTokens(newAccessToken);
-      headers["Authorization"] = `Bearer ${newAccessToken}`;
-      response = await fetch(url, { ...options, headers });
-    } else {
-      removeTokens();
-      window.location.href = "/login";
+      if (refreshResponse.ok) {
+        const data = await refreshResponse.json();
+        const newAccessToken = data.accessToken;
+
+        storeTokens(newAccessToken, getRefreshToken()); 
+        headers["Authorization"] = `Bearer ${newAccessToken}`;
+        response = await fetch(`${API_BASE_URL}${url}`, {
+          ...options,
+          headers,
+        });
+      } else {
+        removeTokens();
+        window.location.href = "/login";
+      }
     }
+
+    return response;
+  } catch (err) {
+    console.error("Fetch with token refresh failed:", err);
+    throw err;
   }
-  return response;
 };
 
 export const login = async (credentials, loginType) => {

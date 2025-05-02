@@ -198,7 +198,7 @@
   .health-card h3 {
     font-size: 18px;
     font-weight: 600;
-    color: var(--text-color);
+    color: #ffffff;
     margin: 0 0 15px;
     display: flex;
     align-items: center;

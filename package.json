@@ -3,12 +3,16 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
+    "@stomp/stompjs": "^7.1.1",
     "cra-template": "1.2.0",
     "efficent-doctor-patient-portal": "file:",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.3",
-    "react-scripts": "5.0.1"
+    "react-scripts": "^5.0.1",
+    "react-toastify": "^11.0.5",
+    "sockjs-client": "^1.6.1",
+    "ws": "^8.18.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -34,6 +38,9 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:8080"
+  "proxy": "http://localhost:8080",
+  "overrides": {
+    "nth-check": "^2.0.1",
+    "postcss": "^8.4.31"
+  }
 }
-

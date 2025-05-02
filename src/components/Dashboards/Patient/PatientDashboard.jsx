@@ -24,10 +24,10 @@ const PatientDashboard = () => {
           throw new Error("No authentication token found");
         }
 
-        const headers = {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        };
+        // const headers = {
+        //   Authorization: `Bearer ${token}`,
+        //   "Content-Type": "application/json",
+        // };
 
         const options = {
           headers: {

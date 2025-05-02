@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import "../../../Styles/DashboardStyles.css"
 
-const DoctorDashboard = () => {
+const DoctorDashboard = (department) => {
   const navigate = useNavigate()
   const [isLoading, setIsLoading] = useState(true)
   const [appointments, setAppointments] = useState([])
@@ -32,7 +32,7 @@ const DoctorDashboard = () => {
         // Fetch all data in parallel
         const [doctorResponse, appointmentsResponse, medicationsResponse, reportsResponse] = await Promise.all([
           fetch("/doctorInfo", { headers }),
-          fetch("/doctorAppointments", { headers }),
+          fetch("/doctor/appointments", { headers }),
           fetch("/prescribedMedications", { headers }),
           fetch("/patientReports", { headers }),
         ])
@@ -87,9 +87,9 @@ const DoctorDashboard = () => {
     Dashboard: () => navigate("/doctor/dashboard"),
     Appointments: () => navigate("/doctor/appointments"),
     Patients: () => navigate("/doctor/patients"),
-    "Medical Records": () => navigate("/doctor/medical-records"),
-    Prescriptions: () => navigate("/doctor/prescriptions"),
+    "Schedule": () => navigate("/doctor/schedule"),
     Messages: () => navigate("/doctor/messages"),
+    Profile: () => navigate("/update/profile"),
   }
 
   if (isLoading) {
@@ -166,8 +166,8 @@ const DoctorDashboard = () => {
                 {name === "Dashboard" && "🏠"}
                 {name === "Appointments" && "📅"}
                 {name === "Patients" && "👥"}
-                {name === "Medical Records" && "📋"}
-                {name === "Prescriptions" && "💊"}
+                {name === "Schedule" && "⏰"}
+                {name === "Profile" && "👤"}
                 {name === "Messages" && "✉️"}
               </span>
               <span>{name}</span>
@@ -469,4 +469,3 @@ const DoctorDashboard = () => {
 }
 
 export default DoctorDashboard
-

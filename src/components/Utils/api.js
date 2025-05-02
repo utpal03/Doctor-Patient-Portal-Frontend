@@ -14,9 +14,8 @@ export const endpoints = {
   signupPatient: `${API_BASE_URL}/signup/patient`,
   forgotPassword: `${API_BASE_URL}/auth/forgot-password`,
   bookAppointment: `${API_BASE_URL}/appointments/book`,
-  viewAppointments: `${API_BASE_URL}/appointments/doctor`,
+  viewAppointments: `${API_BASE_URL}/doctor/appointments`,
 };
-
 
 export const fetchWithTokenRefresh = async (url, options = {}) => {
   try {
@@ -47,7 +46,7 @@ export const fetchWithTokenRefresh = async (url, options = {}) => {
         const data = await refreshResponse.json();
         const newAccessToken = data.accessToken;
 
-        storeTokens(newAccessToken, getRefreshToken()); 
+        storeTokens(newAccessToken, getRefreshToken());
         headers["Authorization"] = `Bearer ${newAccessToken}`;
         response = await fetch(`${API_BASE_URL}${url}`, {
           ...options,
@@ -79,6 +78,23 @@ export const login = async (credentials, loginType) => {
   }
   return response.json();
 };
+export const logout = async () => {
+  const refreshToken = getRefreshToken();
+  const response = await fetch(`/logout`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${refreshToken}`,
+    },
+  });
+
+  if (response.ok) {
+    removeTokens();
+    window.location.href = "/login";
+  } else {
+    console.error("Logout failed:", await response.text());
+  }
+};
 
 export const signup = async (type, data) => {
   const endpoint =
@@ -100,24 +116,6 @@ export const forgotPassword = async (email) => {
     body: JSON.stringify({ email }),
   });
   return response.json();
-};
-
-export const logout = async () => {
-  const refreshToken = getRefreshToken();
-  const response = await fetch(`/logout`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${refreshToken}`,
-    },
-  });
-
-  if (response.ok) {
-    removeTokens();
-    window.location.href = "/login";
-  } else {
-    console.error("Logout failed:", await response.text());
-  }
 };
 
 export const bookAppointment = async (data) => {

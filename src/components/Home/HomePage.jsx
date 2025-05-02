@@ -5,7 +5,6 @@ import { Link } from "react-router-dom"
 import "../../Styles/HomePage.css"
 
 const HomePage = () => {
-  const [theme] = useState("dark")
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isVisible, setIsVisible] = useState(false)
   const [activeTestimonial, setActiveTestimonial] = useState(0)
@@ -152,7 +151,7 @@ const HomePage = () => {
           <div className="hero-image">
             <div className="image-container">
               <img
-                src="https://placehold.co/600x400/4a90e2/ffffff?text=Mediconnect"
+                src="https://placehold.co/600x400/4a90e2/ffffff?text= Mediconnect"
                 alt="Healthcare professionals"
               />
             </div>

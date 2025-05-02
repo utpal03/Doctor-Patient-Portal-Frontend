@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -18,13 +18,13 @@ import LabReports from "./components/Dashboards/Patient/LabReports/LabReports";
 import MedicalRecords from "./components/Dashboards/Patient/MedicalRecords/MedicalRecords";
 import Messages from "./components/Dashboards/Patient/Messages/Messages";
 import Prescriptions from "./components/Dashboards/Patient/Prescriptions/Prescriptions";
-import Appointments from "./components/Dashboards/Doctor/Appointments";
+import DoctorAppointments from "./components/Dashboards/Doctor/Appointments";
 import DoctorMessages from "./components/Dashboards/Doctor/DoctorMessages";
-import Patient_records from "./components/Dashboards/Doctor/Patient_records";
+import PatientRecords from "./components/Dashboards/Doctor/Patient_records";
 import Schedule from "./components/Dashboards/Doctor/Schedule";
 import "./App.css";
 import "./Styles/AuthForm.css";
-import "./Styles/DashboardStyles.css"
+import "./Styles/DashboardStyles.css";
 import "./Styles/HomePage.css";
 
 const App = () => {
@@ -38,14 +38,14 @@ const App = () => {
     const token = getAccessToken();
     let userRoles = [];
     try {
-      const rolesFromStorage = localStorage.getItem('roles');
+      const rolesFromStorage = localStorage.getItem("roles");
       if (rolesFromStorage) {
         const parsed = JSON.parse(rolesFromStorage);
         // Ensure parsed value is an array
         userRoles = Array.isArray(parsed) ? parsed : [parsed];
       }
     } catch (error) {
-      console.error('Error parsing user roles:', error);
+      console.error("Error parsing user roles:", error);
       return <Navigate to="/login" replace />;
     }
 
@@ -56,9 +56,10 @@ const App = () => {
 
     // Check user role if specified
     if (allowedUserType && userRoles.length > 0) {
-      const hasAllowedRole = userRoles.some(role => {
+      const hasAllowedRole = userRoles.some((role) => {
         // Handle both string and object role formats
-        const roleValue = typeof role === 'string' ? role : role?.name || role?.type || '';
+        const roleValue =
+          typeof role === "string" ? role : role?.name || role?.type || "";
         return roleValue.toLowerCase() === allowedUserType.toLowerCase();
       });
 
@@ -80,9 +81,12 @@ const App = () => {
           />
           <Route path="/login" element={<Login />} />
           <Route path="/signup/doctor" element={<Signup userType="doctor" />} />
-          <Route path="/signup/patient" element={<Signup userType="patient" />} />
+          <Route
+            path="/signup/patient"
+            element={<Signup userType="patient" />}
+          />
           <Route path="/forgot-password" element={<ForgotPassword />} />
-          
+
           {/* Patient Protected Routes */}
           <Route
             path="/patient/dashboard"
@@ -151,18 +155,18 @@ const App = () => {
             }
           />
           <Route
-            path="/doctor/myappointment"
+            path="/doctor/appointments"
             element={
               <ProtectedRoute allowedUserType="doctor">
-                <Appointments />
+                <DoctorAppointments />
               </ProtectedRoute>
             }
           />
           <Route
-            path="/doctordashboard/patient-record"
+            path="/doctor/patients"
             element={
               <ProtectedRoute allowedUserType="doctor">
-                <Patient_records />
+                <PatientRecords />
               </ProtectedRoute>
             }
           />
@@ -175,7 +179,7 @@ const App = () => {
             }
           />
           <Route
-            path="/doctoe/Schedule"
+            path="/doctor/Schedule"
             element={
               <ProtectedRoute allowedUserType="doctor">
                 <Schedule />

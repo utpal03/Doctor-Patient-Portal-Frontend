@@ -20,6 +20,24 @@ const PatientAppointments = () => {
   const [filter, setFilter] = useState("upcoming");
   const [calendarView, setCalendarView] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const departments = [
+    "Cardiology",
+    "Neurology",
+    "Orthopedics",
+    "Pediatrics",
+    "General Medicine",
+    "Dermatology",
+    "Psychiatry",
+    "Ophthalmology",
+  ];
+  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [doctorResponse, setDoctorResponse] = useState(null);
+  useEffect(() => {
+    if (isSubmitted && !doctorResponse) {
+      window.alert("Form submitted successfully!");
+      window.location.reload();
+    }
+  }, [isSubmitted, doctorResponse]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -38,11 +56,12 @@ const PatientAppointments = () => {
         };
 
         // Fetch all data in parallel
-        const [patientResponse, appointmentsResponse, doctorsResponse] = await Promise.all([
-          fetch("/patientInfo", { headers }),
-          fetch("/appointments", { headers }),
-          fetch("/doctors", { headers }),
-        ]);
+        const [patientResponse, appointmentsResponse, doctorsResponse] =
+          await Promise.all([
+            fetch("/patientInfo", { headers }),
+            fetch("/appointments", { headers }),
+            fetch("/doctors", { headers }),
+          ]);
 
         // Parse JSON responses
         const [patientData, appointmentsData, doctorsData] = await Promise.all([
@@ -66,7 +85,9 @@ const PatientAppointments = () => {
         }
 
         // Set appointments and doctors
-        setAppointments(Array.isArray(appointmentsData) ? appointmentsData : []);
+        setAppointments(
+          Array.isArray(appointmentsData) ? appointmentsData : []
+        );
         setDoctors(Array.isArray(doctorsData) ? doctorsData : []);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -108,6 +129,9 @@ const PatientAppointments = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitted(true);
+    setDoctorResponse(null);
+    console.log("Form submitted with data:", formData);
     try {
       const token = localStorage.getItem("token");
       const headers = {
@@ -126,7 +150,9 @@ const PatientAppointments = () => {
         // Refresh appointments after scheduling
         const appointmentsResponse = await fetch("/appointments", { headers });
         const appointmentsData = await appointmentsResponse.json();
-        setAppointments(Array.isArray(appointmentsData) ? appointmentsData : []);
+        setAppointments(
+          Array.isArray(appointmentsData) ? appointmentsData : []
+        );
         setShowScheduleForm(false);
         setFormData({
           doctorId: "",
@@ -151,14 +177,12 @@ const PatientAppointments = () => {
         "Content-Type": "application/json",
       };
 
-      // In a real app, you would send this to your backend
       const response = await fetch(`/cancel-appointment/${appointmentId}`, {
         method: "PUT",
         headers,
       });
 
       if (response.ok) {
-        // Update the appointment status locally
         setAppointments(
           appointments.map((app) =>
             app.id === appointmentId ? { ...app, status: "cancelled" } : app
@@ -203,35 +227,35 @@ const PatientAppointments = () => {
   const generateCalendarDays = () => {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
-    
+
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
-    
+
     const daysInMonth = lastDay.getDate();
     const startingDayOfWeek = firstDay.getDay();
-    
+
     const days = [];
-    
+
     // Add empty cells for days before the first day of the month
     for (let i = 0; i < startingDayOfWeek; i++) {
       days.push(null);
     }
-    
+
     // Add days of the month
     for (let i = 1; i <= daysInMonth; i++) {
       days.push(new Date(year, month, i));
     }
-    
+
     return days;
   };
 
   const calendarDays = generateCalendarDays();
-  
+
   // Check if a date has appointments
   const getAppointmentsForDate = (date) => {
     if (!date) return [];
-    
-    return appointments.filter(app => {
+
+    return appointments.filter((app) => {
       const appDate = new Date(app.date);
       return (
         appDate.getDate() === date.getDate() &&
@@ -243,11 +267,11 @@ const PatientAppointments = () => {
 
   // Format date for display
   const formatDate = (date) => {
-    return new Date(date).toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+    return new Date(date).toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
   };
 
@@ -294,7 +318,7 @@ const PatientAppointments = () => {
   }
 
   // Get upcoming appointment count
-  const upcomingCount = appointments.filter(app => {
+  const upcomingCount = appointments.filter((app) => {
     const appDate = new Date(app.date);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -303,7 +327,7 @@ const PatientAppointments = () => {
 
   // Get next appointment
   const nextAppointment = appointments
-    .filter(app => {
+    .filter((app) => {
       const appDate = new Date(app.date);
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -317,7 +341,11 @@ const PatientAppointments = () => {
         <div className="profile-section">
           {patientInfo ? (
             <>
-              <img src={patientInfo.image || "/api/placeholder/80/80"} alt="Patient" className="avatar" />
+              <img
+                src={patientInfo.image || "/api/placeholder/80/80"}
+                alt="Patient"
+                className="avatar"
+              />
               <h3>{patientInfo.name || "Patient Name"}</h3>
               <p>Patient ID: {patientInfo.id || "N/A"}</p>
               <div className="quick-info">
@@ -363,14 +391,14 @@ const PatientAppointments = () => {
             <p>Manage your healthcare appointments and schedule new visits</p>
           </div>
           <div className="view-toggle">
-            <button 
-              className={`view-toggle-btn ${!calendarView ? 'active' : ''}`}
+            <button
+              className={`view-toggle-btn ${!calendarView ? "active" : ""}`}
               onClick={() => setCalendarView(false)}
             >
               <span className="toggle-icon">📋</span> List
             </button>
-            <button 
-              className={`view-toggle-btn ${calendarView ? 'active' : ''}`}
+            <button
+              className={`view-toggle-btn ${calendarView ? "active" : ""}`}
               onClick={() => setCalendarView(true)}
             >
               <span className="toggle-icon">📅</span> Calendar
@@ -387,29 +415,33 @@ const PatientAppointments = () => {
               <p className="overview-label">Scheduled visits</p>
             </div>
           </div>
-          
+
           <div className="overview-card next-card">
             <div className="overview-icon">⏰</div>
             <div className="overview-details">
               <h3>Next Appointment</h3>
               {nextAppointment ? (
                 <>
-                  <p className="next-date">{formatDate(nextAppointment.date)}</p>
-                  <p className="next-doctor">Dr. {nextAppointment.doctorName}</p>
+                  <p className="next-date">
+                    {formatDate(nextAppointment.date)}
+                  </p>
+                  <p className="next-doctor">
+                    Dr. {nextAppointment.doctorName}
+                  </p>
                 </>
               ) : (
                 <p className="no-appointments">No upcoming appointments</p>
               )}
             </div>
           </div>
-          
+
           <div className="overview-card action-card">
             <div className="overview-icon">➕</div>
             <div className="overview-details">
               <h3>Schedule Visit</h3>
               <p>Book a new appointment with your doctor</p>
-              <button 
-                className="schedule-btn" 
+              <button
+                className="schedule-btn"
                 onClick={() => setShowScheduleForm(true)}
               >
                 Book Now
@@ -421,23 +453,42 @@ const PatientAppointments = () => {
         {calendarView ? (
           <section className="calendar-section">
             <div className="calendar-header">
-              <button 
+              <button
                 className="month-nav-btn"
-                onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() - 1, 1))}
+                onClick={() =>
+                  setSelectedDate(
+                    new Date(
+                      selectedDate.getFullYear(),
+                      selectedDate.getMonth() - 1,
+                      1
+                    )
+                  )
+                }
               >
                 &lt;
               </button>
               <h2>
-                {selectedDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+                {selectedDate.toLocaleDateString("en-US", {
+                  month: "long",
+                  year: "numeric",
+                })}
               </h2>
-              <button 
+              <button
                 className="month-nav-btn"
-                onClick={() => setSelectedDate(new Date(selectedDate.getFullYear(), selectedDate.getMonth() + 1, 1))}
+                onClick={() =>
+                  setSelectedDate(
+                    new Date(
+                      selectedDate.getFullYear(),
+                      selectedDate.getMonth() + 1,
+                      1
+                    )
+                  )
+                }
               >
                 &gt;
               </button>
             </div>
-            
+
             <div className="calendar-grid">
               <div className="calendar-day-header">Sun</div>
               <div className="calendar-day-header">Mon</div>
@@ -446,32 +497,43 @@ const PatientAppointments = () => {
               <div className="calendar-day-header">Thu</div>
               <div className="calendar-day-header">Fri</div>
               <div className="calendar-day-header">Sat</div>
-              
+
               {calendarDays.map((day, index) => {
-                if (!day) return <div key={`empty-${index}`} className="calendar-day empty"></div>;
-                
+                if (!day)
+                  return (
+                    <div
+                      key={`empty-${index}`}
+                      className="calendar-day empty"
+                    ></div>
+                  );
+
                 const dayAppointments = getAppointmentsForDate(day);
-                const isToday = new Date().toDateString() === day.toDateString();
-                
+                const isToday =
+                  new Date().toDateString() === day.toDateString();
+
                 return (
-                  <div 
-                    key={day.getTime()} 
-                    className={`calendar-day ${isToday ? 'today' : ''} ${dayAppointments.length > 0 ? 'has-appointments' : ''}`}
+                  <div
+                    key={day.getTime()}
+                    className={`calendar-day ${isToday ? "today" : ""} ${
+                      dayAppointments.length > 0 ? "has-appointments" : ""
+                    }`}
                   >
                     <div className="calendar-date">{day.getDate()}</div>
                     {dayAppointments.length > 0 && (
                       <div className="calendar-appointments">
                         {dayAppointments.slice(0, 2).map((app, i) => (
-                          <div 
-                            key={i} 
+                          <div
+                            key={i}
                             className={`calendar-appointment ${app.status}`}
                             onClick={() => rescheduleAppointment(app)}
                           >
-                            {app.time} - Dr. {app.doctorName.split(' ')[0]}
+                            {app.time} - Dr. {app.doctorName.split(" ")[0]}
                           </div>
                         ))}
                         {dayAppointments.length > 2 && (
-                          <div className="more-appointments">+{dayAppointments.length - 2} more</div>
+                          <div className="more-appointments">
+                            +{dayAppointments.length - 2} more
+                          </div>
                         )}
                       </div>
                     )}
@@ -484,7 +546,9 @@ const PatientAppointments = () => {
           <section className="appointments-section">
             <div className="filter-tabs">
               <button
-                className={`filter-tab ${filter === "upcoming" ? "active" : ""}`}
+                className={`filter-tab ${
+                  filter === "upcoming" ? "active" : ""
+                }`}
                 onClick={() => setFilter("upcoming")}
               >
                 Upcoming
@@ -496,7 +560,9 @@ const PatientAppointments = () => {
                 Past
               </button>
               <button
-                className={`filter-tab ${filter === "cancelled" ? "active" : ""}`}
+                className={`filter-tab ${
+                  filter === "cancelled" ? "active" : ""
+                }`}
                 onClick={() => setFilter("cancelled")}
               >
                 Cancelled
@@ -506,11 +572,17 @@ const PatientAppointments = () => {
             <div className="appointments-list">
               {filteredAppointments.length > 0 ? (
                 filteredAppointments.map((appointment) => (
-                  <div key={appointment.id || Math.random()} className="appointment-card">
+                  <div
+                    key={appointment.id || Math.random()}
+                    className="appointment-card"
+                  >
                     <div className="appointment-date-column">
                       <div className="appointment-date">
                         <div className="appointment-month">
-                          {new Date(appointment.date).toLocaleDateString('en-US', { month: 'short' })}
+                          {new Date(appointment.date).toLocaleDateString(
+                            "en-US",
+                            { month: "short" }
+                          )}
                         </div>
                         <div className="appointment-day">
                           {new Date(appointment.date).getDate()}
@@ -521,20 +593,24 @@ const PatientAppointments = () => {
                       </div>
                       <div className="appointment-time">{appointment.time}</div>
                     </div>
-                    
+
                     <div className="appointment-details-column">
                       <div className="appointment-doctor">
                         <img
-                          src={appointment.doctorImage || "/api/placeholder/80/80"}
+                          src={
+                            appointment.doctorImage || "/api/placeholder/80/80"
+                          }
                           alt={appointment.doctorName || "Doctor"}
                           className="doctor-avatar"
                         />
                         <div className="doctor-info">
                           <h4>Dr. {appointment.doctorName || "Doctor Name"}</h4>
-                          <p>{appointment.specialization || "Specialization N/A"}</p>
+                          <p>
+                            {appointment.specialization || "Specialization N/A"}
+                          </p>
                         </div>
                       </div>
-                      
+
                       <div className="appointment-info">
                         <div className="info-item">
                           <span className="info-icon">📍</span>
@@ -546,33 +622,40 @@ const PatientAppointments = () => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="appointment-status-column">
-                      <div className={`status-badge ${appointment.status || "pending"}`}>
+                      <div
+                        className={`status-badge ${
+                          appointment.status || "pending"
+                        }`}
+                      >
                         {appointment.status || "Pending"}
                       </div>
-                      
-                      {appointment.status !== "cancelled" && appointment.status !== "completed" && (
-                        <div className="appointment-actions">
-                          <button
-                            className="action-button secondary-button"
-                            onClick={() => rescheduleAppointment(appointment)}
-                          >
-                            Reschedule
-                          </button>
-                          <button
-                            className="action-button danger-button"
-                            onClick={() => cancelAppointment(appointment.id)}
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      )}
-                      
+
+                      {appointment.status !== "cancelled" &&
+                        appointment.status !== "completed" && (
+                          <div className="appointment-actions">
+                            <button
+                              className="action-button secondary-button"
+                              onClick={() => rescheduleAppointment(appointment)}
+                            >
+                              Reschedule
+                            </button>
+                            <button
+                              className="action-button danger-button"
+                              onClick={() => cancelAppointment(appointment.id)}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
+
                       {appointment.status === "completed" && (
                         <button
                           className="action-button primary-button"
-                          onClick={() => navigate(`/medical-record/${appointment.id}`)}
+                          onClick={() =>
+                            navigate(`/medical-record/${appointment.id}`)
+                          }
                         >
                           View Summary
                         </button>
@@ -585,7 +668,7 @@ const PatientAppointments = () => {
                   <div className="no-data-icon">📅</div>
                   <h3>No {filter} appointments found</h3>
                   <p>Schedule a new appointment to get started</p>
-                  <button 
+                  <button
                     className="action-button primary-button"
                     onClick={() => setShowScheduleForm(true)}
                   >
@@ -601,31 +684,38 @@ const PatientAppointments = () => {
           <div className="modal-overlay">
             <div className="modal-content appointment-modal">
               <div className="modal-header">
-                <h2>{formData.appointmentId ? "Reschedule Appointment" : "Schedule New Appointment"}</h2>
-                <button className="close-button" onClick={() => setShowScheduleForm(false)}>
+                <h2>
+                  {formData.appointmentId
+                    ? "Reschedule Appointment"
+                    : "Schedule New Appointment"}
+                </h2>
+                <button
+                  className="close-button"
+                  onClick={() => setShowScheduleForm(false)}
+                >
                   ✕
                 </button>
               </div>
               <form onSubmit={handleSubmit} className="appointment-form">
                 <div className="form-group">
-                  <label htmlFor="doctorId">Select Doctor</label>
+                  <label htmlFor="specialization">Select Department</label>
                   <select
-                    id="doctorId"
-                    name="doctorId"
-                    value={formData.doctorId}
+                    id="specialization"
+                    name="specialization"
+                    value={formData.specialization}
                     onChange={handleInputChange}
                     required
-                    disabled={formData.appointmentId}
                     className="form-select"
                   >
-                    <option value="">Select a doctor</option>
-                    {doctors.map((doctor) => (
-                      <option key={doctor.id} value={doctor.id}>
-                        Dr. {doctor.name} - {doctor.specialization}
+                    <option value="">Select a department</option>
+                    {departments.map((dept, index) => (
+                      <option key={index} value={dept}>
+                        {dept}
                       </option>
                     ))}
                   </select>
                 </div>
+
                 <div className="form-row">
                   <div className="form-group">
                     <label htmlFor="date">Date</label>
@@ -642,11 +732,11 @@ const PatientAppointments = () => {
                   </div>
                   <div className="form-group">
                     <label htmlFor="time">Time</label>
-                    <select 
-                      id="time" 
-                      name="time" 
-                      value={formData.time} 
-                      onChange={handleInputChange} 
+                    <select
+                      id="time"
+                      name="time"
+                      value={formData.time}
+                      onChange={handleInputChange}
                       required
                       className="form-select"
                     >
@@ -677,10 +767,18 @@ const PatientAppointments = () => {
                   ></textarea>
                 </div>
                 <div className="form-actions">
-                  <button type="button" className="action-button secondary-button" onClick={() => setShowScheduleForm(false)}>
+                  <button
+                    type="button"
+                    className="action-button secondary-button"
+                    onClick={() => setShowScheduleForm(false)}
+                  >
                     Cancel
                   </button>
-                  <button type="submit" className="action-button primary-button">
+                  <button
+                    type="submit"
+                    className="action-button primary-button"
+                    onClick={() => setShowScheduleForm(true)}
+                  >
                     {formData.appointmentId ? "Reschedule" : "Schedule"}
                   </button>
                 </div>

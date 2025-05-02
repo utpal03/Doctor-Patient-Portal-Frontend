@@ -9,14 +9,14 @@ const Login = () => {
     username: "",
     password: "",
   });
-  const [loginType, setLoginType] = useState("doctor");
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const roles = JSON.parse(localStorage.getItem("roles") || "[]");
-    
+
     if (token) {
       if (roles.includes("DOCTOR")) {
         navigate("/doctor/dashboard");
@@ -43,15 +43,14 @@ const Login = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
+  
     setIsLoading(true);
     try {
-      const response = await login(formData, loginType);
-      // Store tokens,roles and ID
+      const response = await login(formData); // No loginType needed
       storeTokens(response.accessToken, response.refreshToken);
       localStorage.setItem("roles", JSON.stringify(response.roles));
       localStorage.setItem("id", response.id);
-      
+  
       const roles = response.roles;
       if (roles.includes("DOCTOR")) {
         navigate("/doctor/dashboard");
@@ -59,19 +58,29 @@ const Login = () => {
         navigate("/patient/dashboard");
       }
     } catch (err) {
-      setErrors({
-        submit: err.message || "Login failed. Please try again.",
-      });
+      const status = err?.response?.status;
+      const message =
+        status === 401
+          ? "Invalid username or password."
+          : status === 400
+          ? err?.response?.data?.message || "Bad request. Please check your input."
+          : err?.response?.data?.message || "Login failed. Please try again.";
+  
+      setErrors({ submit: message });
     } finally {
       setIsLoading(false);
+      setFormData((prev) => ({ ...prev, password: "" }));
     }
   };
+  
 
   return (
     <div className="auth-container">
       <div className="auth-form">
         <h2>Welcome Back</h2>
+
         <form onSubmit={handleSubmit}>
+          {/* Username Field */}
           <div className="form-group">
             <label htmlFor="username">Username</label>
             <input
@@ -82,37 +91,52 @@ const Login = () => {
                 setFormData({ ...formData, username: e.target.value })
               }
               className={errors.username ? "error" : ""}
+              aria-label="Username"
             />
             {errors.username && (
               <div className="error-message">{errors.username}</div>
             )}
           </div>
 
+          {/* Password Field with Toggle */}
           <div className="form-group">
             <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              className={errors.password ? "error" : ""}
-            />
+            <div className="password-input-wrapper">
+              <input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className={errors.password ? "error" : ""}
+                aria-label="Password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="toggle-password"
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
             {errors.password && (
               <div className="error-message">{errors.password}</div>
             )}
           </div>
 
+          {/* Submit Error */}
           {errors.submit && (
             <div className="error-message">{errors.submit}</div>
           )}
 
+          {/* Submit Button */}
           <button type="submit" className="auth-button" disabled={isLoading}>
             {isLoading ? <div className="spinner"></div> : "Login"}
           </button>
         </form>
 
+        {/* Links */}
         <div className="auth-links">
           <Link to="/forgot-password">Forgot Password?</Link>
           <div className="auth-separator">
